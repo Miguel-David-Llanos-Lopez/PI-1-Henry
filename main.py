@@ -3,7 +3,7 @@ import re
 from fastapi import FastAPI
 import pandas as pd
 
-movies = pd.read_csv('movies_limpio.csv')
+movies = pd.read_csv('data/movies_limpio.csv.csv')
 movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
 
 app = FastAPI()
