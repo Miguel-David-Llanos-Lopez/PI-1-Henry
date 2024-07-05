@@ -38,7 +38,7 @@ async def cantidad_filmaciones_dia(dia:str):
     for i in dias_es:
         if i == dia:
             dia_buscado = dias_es[i]
-    if not dia_buscado:
+    if dia_buscado == None:
         return 'seleccione un dia valido'
     for j in movies['release_date'].dt.day_of_week:
         if j == dia_buscado:
