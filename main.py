@@ -59,7 +59,7 @@ async def votos_titulo(titulo_de_la_filmación:str):
     votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmación.lower()]
     if votos_filmacion.empty:
         return f'No se encontró información para la película {titulo_de_la_filmación}.'
-    elif votos_filmacion['vote_count'] < 2000:
+    elif votos_filmacion.iloc[0]['vote_count'] < 2000:
         return f'los votos para la pelicula {titulo_de_la_filmación} son insuficientes para proporcionar la informacion'
     else:
         return f'La película {votos_filmacion.iloc[0]["title"]} fue estrenada en el año {votos_filmacion.iloc[0]["released_year"]} La misma cuenta con un total de {votos_filmacion.iloc[0]["vote_count"]} valoraciones, con un promedio de {votos_filmacion.iloc[0]["vote_average"]}'
