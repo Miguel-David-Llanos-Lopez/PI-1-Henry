@@ -13,7 +13,7 @@ nltk.download('stopwords')
 movies = pd.read_csv('./data/movies_limpio.csv')
 movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
 
-moviesML = pd.read_csv('../data/moviesEDA.csv')
+moviesML = pd.read_csv('./data/moviesEDA.csv')
 vectorizer = TfidfVectorizer(stop_words='english')
 lista_matrices = []
 for i in moviesML.columns:
