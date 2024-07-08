@@ -87,7 +87,7 @@ async def votos_titulo(titulo_de_la_filmacion:str):
 #@app.get('/get_actor/{actor}')
 #async def get_actor(nombre_actor):
 
-@app.get('/votos_titulo/{titulo}')
+@app.get('/recomendacion/{titulo}')
 async def recomendacion(titulo):
     titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower()]
     if titulo_filmacion.empty:
