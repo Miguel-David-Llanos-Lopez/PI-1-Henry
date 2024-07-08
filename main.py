@@ -1,6 +1,8 @@
 #
 from fastapi import FastAPI
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 movies = pd.read_csv('./data/movies_limpio.csv')
 movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
@@ -53,17 +55,18 @@ async def score_titulo(titulo:str):
         return f'No se encontró información para la película {titulo}.'
     return f'La película {score_filmacion.iloc[0]["title"]} fue estrenada en el año {score_filmacion.iloc[0]["released_year"]} con un score/popularidad de {score_filmacion.iloc[0]["popularity"]}'
 
-@app.get('/votos_titulo/{titulo_de_la_filmación}')
-async def votos_titulo(titulo_de_la_filmación:str):
+@app.get('/votos_titulo/{titulo_de_la_filmacion}')
+async def votos_titulo(titulo_de_la_filmacion:str):
     votos = movies[['released_year', 'title', 'vote_average', 'vote_count']]
-    votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmación.lower()]
+    votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmacion.lower()]
     if votos_filmacion.empty:
-        return f'No se encontró información para la película {titulo_de_la_filmación}.'
+        return f'No se encontró información para la película {titulo_de_la_filmacion}.'
     elif votos_filmacion.iloc[0]['vote_count'] < 2000:
-        return f'los votos para la pelicula {titulo_de_la_filmación} son insuficientes para proporcionar la informacion'
+        return f'los votos para la pelicula {titulo_de_la_filmacion} son insuficientes para proporcionar la informacion'
     else:
         return f'La película {votos_filmacion.iloc[0]["title"]} fue estrenada en el año {votos_filmacion.iloc[0]["released_year"]} La misma cuenta con un total de {votos_filmacion.iloc[0]["vote_count"]} valoraciones, con un promedio de {votos_filmacion.iloc[0]["vote_average"]}'
 
 #@app.get('/get_actor/{actor}')
 #async def get_actor(nombre_actor):
-    
+
+
