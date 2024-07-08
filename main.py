@@ -1,11 +1,29 @@
 #
 from fastapi import FastAPI
 import pandas as pd
+from scipy.sparse import hstack
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.corpus import stopwords
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
 
 
 movies = pd.read_csv('./data/movies_limpio.csv')
 movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
+
+moviesML = pd.read_csv('../data/moviesEDA.csv')
+vectorizer = TfidfVectorizer(stop_words='english')
+lista_matrices = []
+for i in moviesML.columns:
+    matriz = vectorizer.fit_transform(moviesML[i])
+    lista_matrices.append(matriz)
+
+combinacion_matrices = hstack(lista_matrices).tocsr() if len(lista_matrices) > 1 else lista_matrices[0]
+
+def similitud_coseno(idx, matriz):
+    return cosine_similarity(matriz[idx], matriz).flatten()
 
 app = FastAPI()
 
@@ -69,4 +87,15 @@ async def votos_titulo(titulo_de_la_filmacion:str):
 #@app.get('/get_actor/{actor}')
 #async def get_actor(nombre_actor):
 
-
+@app.get('/votos_titulo/{titulo}')
+async def recomendacion(titulo):
+    titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower()]
+    if titulo_filmacion.empty:
+        return f'La película {titulo} no existe en la base de datos'
+    idx = titulo_filmacion.index[0]
+    score = similitud_coseno(idx, combinacion_matrices)
+    lista_pelis = list(enumerate(score))
+    lista_pelis = sorted(lista_pelis, key=lambda x: x[1], reverse=True)
+    lista_pelis = lista_pelis[1:6]
+    indices = [i[0] for i in lista_pelis]
+    return moviesML['title'].iloc[indices].tolist() # type: ignore
