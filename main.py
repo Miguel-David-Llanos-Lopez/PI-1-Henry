@@ -46,11 +46,11 @@ async def cantidad_filmaciones_dia(dia:str):
     return f'{cantidad_filmaciones} cantidad de películas fueron estrenadas en los días {dia}'
 
 @app.get('/titulo_de_la_filmación/{titulo}')
-async def score_titulo(titulo_de_la_filmación:str):
+async def score_titulo(titulo:str):
     scores = movies[['popularity', 'released_year', 'title']]
-    score_filmacion = scores[scores['title'].str.lower() == titulo_de_la_filmación.lower()]
+    score_filmacion = scores[scores['title'].str.lower() == titulo.lower()]
     if score_filmacion.empty:
-        return f'No se encontró información para la película {titulo_de_la_filmación}.'
+        return f'No se encontró información para la película {titulo}.'
     return f'La película {score_filmacion.iloc[0]["title"]} fue estrenada en el año {score_filmacion.iloc[0]["released_year"]} con un score/popularidad de {score_filmacion.iloc[0]["popularity"]}'
 
 @app.get('/votos_titulo/{titulo_de_la_filmación}')
