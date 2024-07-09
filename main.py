@@ -95,7 +95,7 @@ async def get_actor(nombre_actor:str):
         return (f'El nombre ingresado {nombre_actor} no ha participado en ninguna de estas peliculas')
     else:
         retorno_promedio = retorno_total/conteo
-        return (f'El actor {nombre_actor} ha participado de {conteo} cantidad de filmaciones, ha conseguido un retorno de {round(retorno_total,2)} con un promedio de {round(retorno_promedio,2)} por filmacion')
+        return (f'El actor {nombre_actor} ha participado de {conteo} cantidad de filmaciones, el mismo ha conseguido un retorno de {round(retorno_total,2)} con un promedio de {round(retorno_promedio,2)} por filmacion')
 
 @app.get('/get_director/{director}')
 async def get_director(director:str):
