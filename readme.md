@@ -1,3 +1,5 @@
+## descripcion
+este es un ambiente que simula un entorno laboral donde debemos resolver las consignas planteadas en un espacio de tiempo determinado<br>
 ## contexto
 se debe crear un modelo de recomendacion para una start up que provee servicios de agregacon para plataformas de estreaming<br>
 los datos estan originalmente en 2 archivos CSV, algunas columnas tienen datos anidados, nulos y sin transformar<br>
@@ -50,5 +52,5 @@ se aplicaron metodos de aprendizaje automatico como vectorizacion de palabras y 
 
 ## autores
 
-este proyecto fue realizado por: Miguel Llanos
+este proyecto fue realizado por: Miguel Llanos <br>
 Gmail: llanoslopezmigueldavid@gmail.com
