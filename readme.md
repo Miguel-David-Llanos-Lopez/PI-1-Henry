@@ -1,7 +1,7 @@
 ## descripcion
 este es un ambiente que simula un entorno laboral donde debemos resolver las consignas planteadas en un espacio de tiempo determinado<br>
 ## contexto
-se debe crear un modelo de recomendacion para una start up que provee servicios de agregacon para plataformas de estreaming<br>
+se debe crear un modelo de recomendacion para una start up que provee servicios de agregacion para plataformas de estreaming<br>
 los datos estan originalmente en 2 archivos CSV, algunas columnas tienen datos anidados, nulos y sin transformar<br>
 ## tabla de contenido
 1. [Instalación y Requisitos](#instalación-y-requisitos)
