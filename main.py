@@ -36,7 +36,7 @@ async def cantidad_filmaciones_mes(mes:str):
     cantidad_filmaciones = 0
     meses_es = {'enero':1, 'febrero':2, 'marzo':3, 'abril':4, 'mayo':5, 'junio':6, 'julio':7,
                 'agosto':8, 'septiembre':9, 'octubre':10, 'nobiembre':11, 'diciembre':12}
-    mes = mes.lower()
+    mes = mes.lower().strip()
     for i in meses_es:
         if i == mes:
             mes_buscado = meses_es[i]
@@ -53,7 +53,7 @@ async def cantidad_filmaciones_dia(dia:str):
     cantidad_filmaciones = 0
     dias_es = {'lunes':0, 'martes':1, 'miercoles':2, 'miércoles':2, 'jueves':3,
                 'viernes':4, 'sabado':5,'sábado':5, 'domingo':6}
-    dia = dia.lower()
+    dia = dia.lower().strip()
     for i in dias_es:
         if i == dia:
             dia_buscado = dias_es[i]
@@ -68,7 +68,7 @@ async def cantidad_filmaciones_dia(dia:str):
 @app.get('/titulo_de_la_filmación/{titulo}')
 async def score_titulo(titulo:str):
     scores = movies[['popularity', 'release_year', 'title']]
-    score_filmacion = scores[scores['title'].str.lower() == titulo.lower()]
+    score_filmacion = scores[scores['title'].str.lower() == titulo.lower().strip()]
     if score_filmacion.empty:
         return f'No se encontró información para la película {titulo}.'
     return f'La película {score_filmacion.iloc[0]["title"]} fue estrenada en el año {score_filmacion.iloc[0]["release_year"]} con un score/popularidad de {score_filmacion.iloc[0]["popularity"]}'
@@ -76,7 +76,7 @@ async def score_titulo(titulo:str):
 @app.get('/votos_titulo/{titulo_de_la_filmacion}')
 async def votos_titulo(titulo_de_la_filmacion:str):
     votos = movies[['release_year', 'title', 'vote_average', 'vote_count']]
-    votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmacion.lower()]
+    votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmacion.lower().strip()]
     if votos_filmacion.empty:
         return f'No se encontró información para la película {titulo_de_la_filmacion}.'
     elif votos_filmacion.iloc[0]['vote_count'] < 2000:
@@ -86,7 +86,7 @@ async def votos_titulo(titulo_de_la_filmacion:str):
 
 @app.get('/get_actor/{actor}')
 async def get_actor(nombre_actor:str):
-    actores_validos = movies[movies['director'].str.lower() != nombre_actor.lower()]
+    actores_validos = movies[movies['director'].str.lower() != nombre_actor.lower().strip()]
     
     movies_filtrado = actores_validos[actores_validos['cast'].apply(lambda x: isinstance(x, str) and nombre_actor in x.split(', '))]
     conteo = movies_filtrado.shape[0]
@@ -99,7 +99,7 @@ async def get_actor(nombre_actor:str):
 
 @app.get('/get_director/{director}')
 async def get_director(director:str):
-    filmaciones_por_director = movies[movies['director'].str.lower() == director.lower()]
+    filmaciones_por_director = movies[movies['director'].str.lower() == director.lower().strip()]
     retorno_total = filmaciones_por_director['return'].sum()
     filmaciones = []
     for i in range(0, filmaciones_por_director.shape[0]):
@@ -107,8 +107,8 @@ async def get_director(director:str):
     return f'el director {director} ha obtenido un retorno de {retorno_total} sus filmaciones han sido {filmaciones}'
 
 @app.get('/recomendacion/{titulo}')
-async def recomendacion(titulo):
-    titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower()]
+async def recomendacion(titulo:str):
+    titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
     if titulo_filmacion.empty:
         return f'La película {titulo} no existe en la base de datos'
     idx = titulo_filmacion.index[0]
