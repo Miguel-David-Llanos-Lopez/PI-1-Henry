@@ -1,4 +1,4 @@
-#
+# se importan las librerias necesarias
 from fastapi import FastAPI
 import pandas as pd
 from scipy.sparse import hstack
@@ -9,33 +9,45 @@ import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
 
-
+# se lee el archivo
 movies = pd.read_csv('./data/movies_limpio.csv')
+# se transforma la columna 'release_date' en datetime para extraer las fechas correctamente mas tarde
 movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
 
-moviesML = pd.read_csv('./data/moviesEDA.csv')
+# se realiza el preprsesamiento antes de crear los endpoints para ejecutarlo solo una vez y tenerlo disponible cuando se requiera
+moviesML = pd.read_csv('./data/moviesML.csv')
 vectorizer = TfidfVectorizer(stop_words='english')
 lista_matrices = []
+# se convierten las columnas en vectores
 for i in moviesML.columns:
     matriz = vectorizer.fit_transform(moviesML[i])
     lista_matrices.append(matriz)
 
-combinacion_matrices = hstack(lista_matrices).tocsr() if len(lista_matrices) > 1 else lista_matrices[0]
+# se apilan las columnas de forma horizontal para que encajen con la entrada de datos que espera el modelo
+combinacion_matrices = hstack(lista_matrices).tocsr()
 
 def similitud_coseno(idx, matriz):
     return cosine_similarity(matriz[idx], matriz).flatten()
 
 app = FastAPI()
-
+# para ver si la API despliega correctamente
 @app.get('/')  # type: ignore
 async def root():
     return {'message':'hola mundo'}
 
 @app.get('/cantidad_filmaciones_mes/{mes}')
 async def cantidad_filmaciones_mes(mes:str):
+    """ se ingresa un mes en español y retorna la cantidad de filmaciones estrenadas ese mes 
+
+    Args:
+        mes (str): un mes en español puede estar con o sin mayusculas ej: Enero
+
+    Returns:
+        str: x películas fueron estrenadas en el mes de x
+    """
     cantidad_filmaciones = 0
     meses_es = {'enero':1, 'febrero':2, 'marzo':3, 'abril':4, 'mayo':5, 'junio':6, 'julio':7,
-                'agosto':8, 'septiembre':9, 'octubre':10, 'nobiembre':11, 'diciembre':12}
+                'agosto':8, 'septiembre':9, 'octubre':10, 'noviembre':11, 'diciembre':12}
     mes = mes.lower().strip()
     for i in meses_es:
         if i == mes:
@@ -46,10 +58,18 @@ async def cantidad_filmaciones_mes(mes:str):
         if j == mes_buscado:
             cantidad_filmaciones += 1
 
-    return f'{cantidad_filmaciones} cantidad de películas fueron estrenadas en el mes de {mes}'
+    return f'{cantidad_filmaciones} películas fueron estrenadas en el mes de {mes}'
 
 @app.get('/cantidad_filmaciones_dia/{dia}')
 async def cantidad_filmaciones_dia(dia:str):
+    """ se ingresa un dia de la semana en español y retorna la cantidad de filmaciones estrenadas ese dia
+
+    Args:
+        mes (str): un dia de la semana en español puede estar con o sin mayusculas ej: Lunes
+
+    Retorna:
+        str: x películas fueron estrenadas en los dias x
+    """
     cantidad_filmaciones = 0
     dias_es = {'lunes':0, 'martes':1, 'miercoles':2, 'miércoles':2, 'jueves':3,
                 'viernes':4, 'sabado':5,'sábado':5, 'domingo':6}
@@ -63,10 +83,20 @@ async def cantidad_filmaciones_dia(dia:str):
         if j == dia_buscado:
             cantidad_filmaciones += 1
 
-    return f'{cantidad_filmaciones} cantidad de películas fueron estrenadas en los días {dia}'
+    return f'{cantidad_filmaciones} películas fueron estrenadas en los días {dia}'
 
 @app.get('/titulo_de_la_filmación/{titulo}')
 async def score_titulo(titulo:str):
+    """se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+    se regresara un texto con el año de estreno popularidad y titulo de la filmacion
+
+    Args:
+        titulo (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
+
+    Returns:
+        str: La película x fue estrenada en el año x con un score/popularidad de x
+
+    """
     scores = movies[['popularity', 'release_year', 'title']]
     score_filmacion = scores[scores['title'].str.lower() == titulo.lower().strip()]
     if score_filmacion.empty:
@@ -75,6 +105,16 @@ async def score_titulo(titulo:str):
 
 @app.get('/votos_titulo/{titulo_de_la_filmacion}')
 async def votos_titulo(titulo_de_la_filmacion:str):
+    """ se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+        se regresara un texto con el año de estreno, promedio de votos, conteo de votos y titulo de la filmacion.
+        la pelicula debera tener mas de 2000 votos para proporcionar la informacion
+
+    Args:
+        titulo_de_la_filmacion (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
+
+    Returns:
+        str: La película x fue estrenada en el año x La misma cuenta con un total de x valoraciones, con un promedio de x
+    """
     votos = movies[['release_year', 'title', 'vote_average', 'vote_count']]
     votos_filmacion = votos[votos['title'].str.lower() == titulo_de_la_filmacion.lower().strip()]
     if votos_filmacion.empty:
@@ -86,6 +126,17 @@ async def votos_titulo(titulo_de_la_filmacion:str):
 
 @app.get('/get_actor/{actor}')
 async def get_actor(nombre_actor:str):
+    """ se ingresa el nombre de un a actor y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+        se regresara un texto con el nombre, cantidad de filmaciones en las que ha participado, el retorno total de las perliculas 
+        y el retorno promedio por filmacion
+        no se contaran las peliculas donde el actor sea tambien director
+
+    Args:
+        nombre_actor (str): el nombre del actor con o sin mayusculas Ej: Chris Casamassa
+
+    Returns:
+        str: El actor x ha participado de x cantidad de filmaciones, el mismo ha conseguido un retorno de x con un promedio de x por filmacion')
+    """
     actores_validos = movies[movies['director'].str.lower() != nombre_actor.lower().strip()]
     
     movies_filtrado = actores_validos[actores_validos['cast'].apply(lambda x: isinstance(x, str) and nombre_actor in x.split(', '))]
@@ -99,6 +150,16 @@ async def get_actor(nombre_actor:str):
 
 @app.get('/get_director/{director}')
 async def get_director(director:str):
+    """ se ingresa el nombre de un director y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+        se regresara un texto con el nombre, filmaciones en las que ha participado y el retorno total de las perliculas 
+        no se contaran las peliculas donde el actor sea tambien director
+
+    Args:
+        director (str): el nombre del director con o sin mayusculas Ej: Michael Mann
+
+    Returns:
+        str: el director x ha obtenido un retorno de x sus filmaciones han sido x
+    """
     filmaciones_por_director = movies[movies['director'].str.lower() == director.lower().strip()]
     retorno_total = filmaciones_por_director['return'].sum()
     filmaciones = []
@@ -108,11 +169,20 @@ async def get_director(director:str):
 
 @app.get('/recomendacion/{titulo}')
 async def recomendacion(titulo:str):
+    """ Se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+        se regresara una lista con las 5 peliculas mas parecidas a la ingresada
+
+    Args:
+        titulo (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
+
+    Returns:
+        str: retorna una lista de las 5 peliculas mas parecidas a la pelicula ingresada
+    """
     titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
     if titulo_filmacion.empty:
         return f'La película {titulo} no existe en la base de datos'
-    idx = titulo_filmacion.index[0]
-    score = similitud_coseno(idx, combinacion_matrices)
+    idmovie = titulo_filmacion.index[0]
+    score = similitud_coseno(idmovie, combinacion_matrices)
     lista_pelis = list(enumerate(score))
     lista_pelis = sorted(lista_pelis, key=lambda x: x[1], reverse=True)
     lista_pelis = lista_pelis[1:6]
