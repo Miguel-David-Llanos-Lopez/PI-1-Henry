@@ -8,11 +8,8 @@ from nltk.corpus import stopwords
 import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
+from config import movies
 
-# se lee el archivo
-movies = pd.read_csv('./data/movies_limpio.csv')
-# se transforma la columna 'release_date' en datetime para extraer las fechas correctamente mas tarde
-movies['release_date'] = pd.to_datetime(movies['release_date'], format='%Y-%m-%d', errors='coerce')
 
 # se realiza el preprsesamiento antes de crear los endpoints para ejecutarlo solo una vez y tenerlo disponible cuando se requiera
 moviesML = pd.read_csv('./data/moviesML.csv')
@@ -49,9 +46,7 @@ async def cantidad_filmaciones_mes(mes:str):
     meses_es = {'enero':1, 'febrero':2, 'marzo':3, 'abril':4, 'mayo':5, 'junio':6, 'julio':7,
                 'agosto':8, 'septiembre':9, 'octubre':10, 'noviembre':11, 'diciembre':12}
     mes = mes.lower().strip()
-    for i in meses_es:
-        if i == mes:
-            mes_buscado = meses_es[i]
+    mes_buscado = meses_es.get(mes)
     if not mes_buscado:
         return 'seleccione un mes valido'
     for j in movies['release_date'].dt.month:
@@ -143,10 +138,10 @@ async def get_actor(nombre_actor:str):
     conteo = movies_filtrado.shape[0]
     retorno_total = movies_filtrado['return'].sum()
     if conteo == 0:
-        return (f'El nombre ingresado {nombre_actor} no ha participado en ninguna de estas peliculas')
+        return f'El nombre ingresado {nombre_actor} no ha participado en ninguna de estas peliculas'
     else:
         retorno_promedio = retorno_total/conteo
-        return (f'El actor {nombre_actor} ha participado de {conteo} cantidad de filmaciones, el mismo ha conseguido un retorno de {round(retorno_total,2)} con un promedio de {round(retorno_promedio,2)} por filmacion')
+        return f'El actor {nombre_actor} ha participado de {conteo} cantidad de filmaciones, el mismo ha conseguido un retorno de {round(retorno_total,2)} con un promedio de {round(retorno_promedio,2)} por filmacion'
 
 @app.get('/get_director/{director}')
 async def get_director(director:str):

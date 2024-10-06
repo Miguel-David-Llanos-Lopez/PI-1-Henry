@@ -1,0 +1,44 @@
+import pandas as pd
+from scipy.sparse import hstack
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.corpus import stopwords
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+
+moviesML = pd.read_csv('./data/moviesML.csv')
+vectorizer = TfidfVectorizer(stop_words='english')
+lista_matrices = []
+# se convierten las columnas en vectores
+for i in moviesML.columns:
+    matriz = vectorizer.fit_transform(moviesML[i])
+    lista_matrices.append(matriz)
+
+# se apilan las columnas de forma horizontal para que encajen con la entrada de datos que espera el modelo
+combinacion_matrices = hstack(lista_matrices).tocsr()
+
+def similitud_coseno(idx, matriz):
+    return cosine_similarity(matriz[idx], matriz).flatten()
+
+
+def recomendacion(titulo:str):
+    """ Se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
+        se regresara una lista con las 5 peliculas mas parecidas a la ingresada
+
+    Args:
+        titulo (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
+
+    Returns:
+        str: retorna una lista de las 5 peliculas mas parecidas a la pelicula ingresada
+    """
+    titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
+    if titulo_filmacion.empty:
+        return f'La película {titulo} no existe en la base de datos'
+    idmovie = titulo_filmacion.index[0]
+    score = similitud_coseno(idmovie, combinacion_matrices)
+    lista_pelis = list(enumerate(score))
+    lista_pelis = sorted(lista_pelis, key=lambda x: x[1], reverse=True)
+    lista_pelis = lista_pelis[1:6]
+    indices = [i[0] for i in lista_pelis]
+    return moviesML['title'].iloc[indices].tolist() # type: ignore
