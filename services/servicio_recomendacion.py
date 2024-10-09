@@ -23,15 +23,6 @@ def similitud_coseno(idx, matriz):
 
 
 def recomendacion(titulo:str):
-    """ Se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
-        se regresara una lista con las 5 peliculas mas parecidas a la ingresada
-
-    Args:
-        titulo (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
-
-    Returns:
-        str: retorna una lista de las 5 peliculas mas parecidas a la pelicula ingresada
-    """
     titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
     if titulo_filmacion.empty:
         return f'La película {titulo} no existe en la base de datos'

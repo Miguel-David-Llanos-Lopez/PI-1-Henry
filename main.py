@@ -9,6 +9,7 @@ import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
 from config import movies
+from endpoints import endpoint_recomendacion
 
 
 # se realiza el preprsesamiento antes de crear los endpoints para ejecutarlo solo una vez y tenerlo disponible cuando se requiera
@@ -162,24 +163,4 @@ async def get_director(director:str):
         filmaciones.append(f"{filmaciones_por_director.iloc[i]['title']} del año {filmaciones_por_director.iloc[i]['release_year']} obtuvo un retorno de {filmaciones_por_director.iloc[i]['return']}, la filmacion tuvo un costo de {filmaciones_por_director.iloc[i]['budget']} y una gancia de {filmaciones_por_director.iloc[i]['revenue']}")
     return f'el director {director} ha obtenido un retorno de {retorno_total} sus filmaciones han sido {filmaciones}'
 
-@app.get('/recomendacion/{titulo}')
-async def recomendacion(titulo:str):
-    """ Se ingresa un titulo de pelicula y se buscara en el dataframe si hay coincidencias, en caso de haberlas
-        se regresara una lista con las 5 peliculas mas parecidas a la ingresada
-
-    Args:
-        titulo (str): el nombre de la filmacion con o sin mayusculas Ej: Cars 2
-
-    Returns:
-        str: retorna una lista de las 5 peliculas mas parecidas a la pelicula ingresada
-    """
-    titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
-    if titulo_filmacion.empty:
-        return f'La película {titulo} no existe en la base de datos'
-    idmovie = titulo_filmacion.index[0]
-    score = similitud_coseno(idmovie, combinacion_matrices)
-    lista_pelis = list(enumerate(score))
-    lista_pelis = sorted(lista_pelis, key=lambda x: x[1], reverse=True)
-    lista_pelis = lista_pelis[1:6]
-    indices = [i[0] for i in lista_pelis]
-    return moviesML['title'].iloc[indices].tolist() # type: ignore
+@app.include_router(endpoint_recomendacion.router)
