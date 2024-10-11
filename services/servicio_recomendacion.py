@@ -22,7 +22,7 @@ def similitud_coseno(idx, matriz):
     return cosine_similarity(matriz[idx], matriz).flatten()
 
 
-def recomendacion(titulo:str):
+def recomendar(titulo:str):
     titulo_filmacion = moviesML[moviesML['title'].str.lower() == titulo.lower().strip()]
     if titulo_filmacion.empty:
         return f'La película {titulo} no existe en la base de datos'

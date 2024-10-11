@@ -1,31 +1,8 @@
 # se importan las librerias necesarias
 from fastapi import FastAPI
 import pandas as pd
-from scipy.sparse import hstack
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.corpus import stopwords
-import nltk
-nltk.download('punkt')
-nltk.download('stopwords')
 from config import movies
 from endpoints import endpoint_recomendacion
-
-
-# se realiza el preprsesamiento antes de crear los endpoints para ejecutarlo solo una vez y tenerlo disponible cuando se requiera
-moviesML = pd.read_csv('./data/moviesML.csv')
-vectorizer = TfidfVectorizer(stop_words='english')
-lista_matrices = []
-# se convierten las columnas en vectores
-for i in moviesML.columns:
-    matriz = vectorizer.fit_transform(moviesML[i])
-    lista_matrices.append(matriz)
-
-# se apilan las columnas de forma horizontal para que encajen con la entrada de datos que espera el modelo
-combinacion_matrices = hstack(lista_matrices).tocsr()
-
-def similitud_coseno(idx, matriz):
-    return cosine_similarity(matriz[idx], matriz).flatten()
 
 app = FastAPI()
 # para ver si la API despliega correctamente
@@ -163,4 +140,4 @@ async def get_director(director:str):
         filmaciones.append(f"{filmaciones_por_director.iloc[i]['title']} del año {filmaciones_por_director.iloc[i]['release_year']} obtuvo un retorno de {filmaciones_por_director.iloc[i]['return']}, la filmacion tuvo un costo de {filmaciones_por_director.iloc[i]['budget']} y una gancia de {filmaciones_por_director.iloc[i]['revenue']}")
     return f'el director {director} ha obtenido un retorno de {retorno_total} sus filmaciones han sido {filmaciones}'
 
-@app.include_router(endpoint_recomendacion.router)
+app.include_router(endpoint_recomendacion.router)
