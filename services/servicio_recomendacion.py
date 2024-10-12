@@ -6,8 +6,9 @@ from nltk.corpus import stopwords
 import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
+from config import moviesML
 
-moviesML = pd.read_csv('./data/moviesML.csv')
+
 vectorizer = TfidfVectorizer(stop_words='english')
 lista_matrices = []
 # se convierten las columnas en vectores
